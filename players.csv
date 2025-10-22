@@ -1,0 +1,51 @@
+player_id,full_name,team,batting_style,bowling_style
+1,Stokes P1,Australia,Right-handed,Off spin
+2,Williamson P2,Australia,Right-handed,Right-arm medium
+3,Bairstow P3,Australia,Right-handed,Leg spin
+4,Labuschagne P4,Australia,Right-handed,Right-arm fast
+5,Ashwin P5,Australia,Right-handed,Leg spin
+6,Siraj P6,Australia,Left-handed,Right-arm medium
+7,Ali P7,Australia,Left-handed,
+8,Chahal P8,Australia,Right-handed,Off spin
+9,Maharaj P9,Australia,Left-handed,Right-arm medium
+10,Chahal P10,Australia,Left-handed,Right-arm fast
+11,Hope P11,England,Right-handed,Left-arm fast
+12,Woakes P12,England,Left-handed,
+13,Shami P13,England,Left-handed,Leg spin
+14,Hope P14,England,Right-handed,Leg spin
+15,Malan P15,England,Left-handed,Leg spin
+16,Siraj P16,England,Right-handed,Right-arm fast
+17,Ashwin P17,England,Left-handed,Right-arm fast
+18,Bairstow P18,England,Left-handed,Left-arm fast
+19,Malan P19,England,Left-handed,Right-arm medium
+20,Ngidi P20,England,Right-handed,Off spin
+21,Kishan P21,India,Right-handed,Leg spin
+22,Kohli P22,West Indies,Right-handed,Right-arm medium
+23,Hope P23,New Zealand,Left-handed,Off spin
+24,Khawaja P24,West Indies,Right-handed,Off spin
+25,Kuldeep P25,India,Right-handed,Right-arm medium
+26,De Kock P26,Australia,Left-handed,Left-arm fast
+27,Pant P27,Australia,Left-handed,Right-arm medium
+28,Sams P28,West Indies,Left-handed,Off spin
+29,Buttler P29,New Zealand,Left-handed,Right-arm medium
+30,Jadeja P30,England,Left-handed,Off spin
+31,Gayle P31,South Africa,Left-handed,Left-arm fast
+32,Archer P32,England,Left-handed,Right-arm fast
+33,Stokes P33,Australia,Right-handed,Off spin
+34,Iyer P34,England,Left-handed,Leg spin
+35,Hope P35,Australia,Left-handed,Leg spin
+36,Green P36,New Zealand,Left-handed,Leg spin
+37,Iyer P37,Australia,Right-handed,Off spin
+38,Chahal P38,South Africa,Left-handed,
+39,Maharaj P39,West Indies,Right-handed,Left-arm fast
+40,Kohli P40,New Zealand,Left-handed,Right-arm fast
+41,Shami P41,West Indies,Left-handed,Leg spin
+42,Marsh P42,England,Right-handed,
+43,Rabada P43,West Indies,Right-handed,Right-arm medium
+44,Chahal P44,India,Right-handed,Leg spin
+45,Smith P45,South Africa,Left-handed,Left-arm orthodox
+46,Stokes P46,Australia,Left-handed,
+47,Williamson P47,India,Right-handed,Right-arm medium
+48,Root P48,South Africa,Right-handed,Off spin
+49,Starc P49,New Zealand,Right-handed,Right-arm medium
+50,Paine P50,West Indies,Right-handed,Left-arm fast

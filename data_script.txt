@@ -1,0 +1,377 @@
+1. Python Script to Generate Sample Data
+This script will create CSV files for players, matches, and a large deliveries table.
+import csv
+import random
+from datetime import datetime, timedelta
+
+# --- Configuration ---
+NUM_PLAYERS = 50
+NUM_MATCHES = 10
+DELIVERIES_PER_MATCH = 120 * 2  # approx 120 balls per innings * 2 innings
+TOTAL_DELIVERIES = NUM_MATCHES * DELIVERIES_PER_MATCH
+
+TEAMS = ['Australia', 'England', 'India', 'New Zealand', 'South Africa', 'West Indies']
+PLAYER_NAMES = ['Smith', 'Warner', 'Labuschagne', 'Cummins', 'Starc', 'Root', 'Bairstow', 'Stokes', 'Archer', 'Buttler',
+                'Kohli', 'Sharma', 'Bumrah', 'Pant', 'Ashwin', 'Williamson', 'Boult', 'Southee', 'Conway', 'Rabada',
+                'De Kock', 'Maharaj', 'Ngidi', 'Pollard', 'Hope', 'Holder', 'Russell', 'Gayle', 'Finch', 'Carey',
+                'Paine', 'Sams', 'Marsh', 'Green', 'Agar', 'Khawaja', 'Billings', 'Ali', 'Woakes', 'Wood', 'Malan',
+                'Curran', 'Vihari', 'Iyer', 'Kishan', 'Siraj', 'Shami', 'Jadeja', 'Chahal', 'Kuldeep']
+BATTING_STYLES = ['Right-handed', 'Left-handed']
+BOWLING_STYLES = ['Right-arm fast', 'Right-arm medium', 'Left-arm fast', 'Left-arm orthodox', 'Leg spin', 'Off spin', None]
+VENUES = ['MCG', 'SCG', 'The Oval', 'Lords', 'Eden Gardens', 'Wankhede', 'Basin Reserve', 'Newlands']
+SHOTS = ['Defensive', 'Drive', 'Cut', 'Pull', 'Sweep', 'Lofted']
+WICKET_TYPES = ['bowled', 'caught', 'lbw', 'run out', 'stumped', 'hit wicket', None]
+BALL_TYPES = ['seamer', 'off cutter', 'leg cutter', 'bouncer', 'slower ball', 'yorker', 'off break', 'leg break', 'googly']
+
+# --- Generate Players ---
+players = []
+for i in range(NUM_PLAYERS):
+    player_id = i + 1
+    team = random.choice(TEAMS)
+    # Ensure some players share teams
+    if i < 10:
+        team = TEAMS[0]
+    elif i < 20:
+        team = TEAMS[1]
+    players.append({
+        'player_id': player_id,
+        'full_name': f"{random.choice(PLAYER_NAMES)} P{player_id}",  # Add a unique identifier
+        'team': team,
+        'batting_style': random.choice(BATTING_STYLES),
+        'bowling_style': random.choice(BOWLING_STYLES)
+    })
+
+# Write players to CSV
+with open('players.csv', 'w', newline='') as csvfile:
+    fieldnames = ['player_id', 'full_name', 'team', 'batting_style', 'bowling_style']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(players)
+print(f"Generated {len(players)} players.")
+
+# --- Generate Matches ---
+matches = []
+start_date = datetime(2023, 1, 1)
+for i in range(NUM_MATCHES):
+    match_id = i + 1
+    date = start_date + timedelta(days=i*7)  # Space matches a week apart
+    team_a, team_b = random.sample(TEAMS, 2)
+    toss_winner = random.choice([team_a, team_b])
+    toss_decision = random.choice(['bat', 'field'])
+    # Simple logic: toss winner wins 55% of the time
+    winner = toss_winner if random.random() < 0.55 else (team_b if toss_winner == team_a else team_a)
+
+    matches.append({
+        'match_id': match_id,
+        'season': 2023,
+        'date': date.strftime('%Y-%m-%d'),
+        'venue': random.choice(VENUES),
+        'team_a': team_a,
+        'team_b': team_b,
+        'toss_winner': toss_winner,
+        'toss_decision': toss_decision,
+        'winner': winner
+    })
+
+# Write matches to CSV
+with open('matches.csv', 'w', newline='') as csvfile:
+    fieldnames = ['match_id', 'season', 'date', 'venue', 'team_a', 'team_b', 'toss_winner', 'toss_decision', 'winner']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(matches)
+print(f"Generated {len(matches)} matches.")
+
+# --- Generate Deliveries (This will be our 1000+ rows) ---
+deliveries = []
+delivery_id = 1
+
+for match in matches:
+    match_id = match['match_id']
+    team_a_players = [p for p in players if p['team'] == match['team_a']]
+    team_b_players = [p for p in players if p['team'] == match['team_b']]
+
+    # Innings 1: Team A bats, Team B bowls
+    batter_id = random.choice(team_a_players)['player_id']
+    non_striker_id = random.choice([p for p in team_a_players if p['player_id'] != batter_id])['player_id']
+    bowler_id = random.choice(team_b_players)['player_id']
+
+    for innings in [1, 2]:
+        balls_per_innings = DELIVERIES_PER_MATCH // 2
+        team_batting = team_a_players if innings == 1 else team_b_players
+        team_bowling = team_b_players if innings == 1 else team_a_players
+
+        for ball in range(balls_per_innings):
+            over = ball // 6
+            ball_in_over = (ball % 6) + 1
+
+            # Random events
+            runs_off_bat = random.choices([0, 1, 2, 3, 4, 5, 6], weights=[60, 20, 10, 2, 15, 1, 5], k=1)[0]
+            extras = random.choices([0, 1, 2], weights=[90, 7, 3], k=1)[0]
+            is_wicket = random.random() < 0.05  # 5% chance of a wicket
+
+            wicket_type = None
+            dismissed_batter_id = None
+
+            if is_wicket:
+                wicket_type = random.choice(WICKET_TYPES)
+                if wicket_type:  # If not 'None'
+                    dismissed_batter_id = batter_id
+                    # New batter comes in
+                    batter_id = random.choice([p for p in team_batting if p['player_id'] not in [batter_id, non_striker_id]])['player_id']
+
+            # Change bowler every 6 overs (36 balls)
+            if ball % 36 == 0 and ball > 0:
+                bowler_id = random.choice([p for p in team_bowling if p['player_id'] != bowler_id and p['bowling_style'] is not None])['player_id']
+
+            # Swap batter and non-striker on odd runs (except 3,5 which are rare)
+            if runs_off_bat in [1, 3, 5]:
+                batter_id, non_striker_id = non_striker_id, batter_id
+
+            deliveries.append({
+                'delivery_id': delivery_id,
+                'match_id': match_id,
+                'innings': innings,
+                'over': over,
+                'ball': ball_in_over,
+                'batter_id': batter_id,
+                'bowler_id': bowler_id,
+                'non_striker_id': non_striker_id,
+                'runs_off_bat': runs_off_bat,
+                'extras': extras,
+                'wicket_type': wicket_type,
+                'dismissed_batter_id': dismissed_batter_id
+            })
+            delivery_id += 1
+
+# Write deliveries to CSV
+with open('deliveries.csv', 'w', newline='') as csvfile:
+    fieldnames = ['delivery_id', 'match_id', 'innings', 'over', 'ball', 'batter_id', 'bowler_id', 'non_striker_id', 'runs_off_bat', 'extras', 'wicket_type', 'dismissed_batter_id']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(deliveries)
+print(f"Generated {len(deliveries)} deliveries.")
+
+print("\nSample Data Generation Complete!")
+print(f"Files created: 'players.csv', 'matches.csv', 'deliveries.csv'")
+print(f"Total deliveries: {len(deliveries)} (Well over 1000 samples)")
+2. How to Use This Script
+1.	Save the Script: Copy the code above and save it as a file, e.g., generate_cricket_data.py.
+2.	Run the Script: Execute it using Python in your terminal/command prompt:
+python generate_cricket_data.py
+
+3.	Get Output: The script will generate three CSV files:
+o	players.csv (~50 rows)
+o	matches.csv (~10 rows)
+o	deliveries.csv (2400 rows - 10 matches * 2 innings * 120 balls. This is your 1000+ sample dataset).
+3. Sample Rows from the Generated Data
+deliveries.csv (First 5 rows as an example):
+delivery_id	match_id	innings	over	ball	batter_id	bowler_id	non_striker_id	runs_off_bat	extras	wicket_type	dismissed_batter_id
+1	1	1	0	1	12	45	17	0	0	None	None
+2	1	1	0	2	12	45	17	1	0	None	None
+3	1	1	0	3	17	45	12	4	0	None	None
+4	1	1	0	4	17	45	12	0	0	None	None
+5	1	1	0	5	17	45	12	2	0	None	None
+...	...	...	...	...	...	...	...	...	...	...	...
+1238	10	2	19	5	32	8	41	6	0	None	None
+1239	10	2	19	6	32	8	41	0	0	caught	32
+2400	10	2	19	6	49	8	41	1	0	None	None
+
+
+4. Generating Other Data Types (Biometric, Video, Contextual)
+For the other, more complex data types, generating 1000 samples is about creating 1000 timestamped events or data points. The logic is similar.
+Example: Script snippet to generate biometric data for one match (1000+ lines)
+# ... (after generating players and matches)
+biometric_data = []
+timestamp = datetime(2023, 5, 15, 13, 0, 0)  # Start time of match
+for delivery in deliveries[:500]: # For the first 500 deliveries of the match
+    for player_id in [delivery['batter_id'], delivery['non_striker_id'], delivery['bowler_id']]:
+        timestamp += timedelta(seconds=random.uniform(0.5, 3.0))
+        biometric_data.append({
+            "timestamp": timestamp.isoformat() + "Z",
+            "player_id": player_id,
+            "heart_rate_bpm": random.randint(80, 170),
+            "speed_kmh": round(random.uniform(0, 35), 1),
+            "total_distance_m": random.randint(0, 20000),
+        })
+
+with open('biometric_data.csv', 'w', newline='') as csvfile:
+    fieldnames = ['timestamp', 'player_id', 'heart_rate_bpm', 'speed_kmh', 'total_distance_m']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    writer.writerows(biometric_data)
+print(f"Generated {len(biometric_data)} biometric data points.")
+
+This approach allows you to programmatically create vast, coherent, and relational sample datasets perfect for testing databases, APIs, and machine learning models. You can adjust the NUM_MATCHES and DELIVERIES_PER_MATCH constants in the first script to generate exactly the volume of data you need.
+
+
+
+
+
+
+
+
+1. Ball-by-Ball Historical Dataset (Cleaned, Normalized)
+This is typically stored in a SQL database. Here are sample rows from key tables.
+Table: matches
+match_id	season	date	venue	team_a	team_b	toss_winner	toss_decision	winner
+101	2023	2023-05-15	Lords	England	Australia	England	field	Australia
+102	2023	2023-05-18	The Oval	England	India	India	bat	England
+Table: deliveries (The core ball-by-ball data)
+match_id	innings	over	ball	batter_id	bowler_id	non_striker_id	runs_off_bat	extras	wicket_type	dismissed_batter_id	player_out_id
+101	1	12	3	201 (Smith)	501 (Archer)	202 (Labuschagne)	4	0	NULL	NULL	NULL
+101	1	12	4	201 (Smith)	501 (Archer)	202 (Labuschagne)	0	0	bowled	201 (Smith)	201 (Smith)
+101	2	19	5	301 (Buttler)	601 (Cummins)	302 (Stokes)	6	0	NULL	NULL	NULL
+Table: players
+player_id	full_name	team	batting_style	bowling_style
+201	Steve Smith	Australia	Right-handed	Leg spin
+501	Jofra Archer	England	Right-handed	Right-arm fast
+301	Jos Buttler	England	Right-handed	NULL
+________________________________________
+2. Player Performance Metrics & Historical Stats
+
+2. Player Performance Metrics & Historical Stats
+JSON API Response: GET /players/201/stats
+{
+  "player_id": 201,
+  "name": "Steve Smith",
+  "career_stats": {
+    "batting": {
+      "matches": 128,
+      "innings": 227,
+      "runs": 9113,
+      "average": 60.89,
+      "strike_rate": 54.60,
+      "hundreds": 32,
+      "fifties": 39,
+      "high_score": 239
+    },
+    "bowling": {
+      "innings": 45,
+      "wickets": 19,
+      "average": 53.26,
+      "economy": 3.50,
+      "best_bowling": "3/18"
+    }
+  },
+  "form_last_10_innings": [45, 12, 80, 131, 3, 67, 0, 42, 23, 55],
+  "against_pace": { "average": 58.2, "strike_rate": 52.1 },
+  "against_spin": { "average": 65.8, "strike_rate": 57.4 },
+  "dismissal_breakdown": {
+    "bowled": 22,
+    "caught": 115,
+    "lbw": 31,
+    "run_out": 9
+  }
+}
+3. Biometric/Wearable Streaming Data (Heart Rate, GPS, Accelerometer)
+This is high-frequency time-series data, often streamed via WebSocket or IoT protocols.
+Sample Stream (JSON messages per player, per second):
+// Message 1 - Player 301 (Buttler) at the start of his innings
+{
+  "timestamp": "2023-05-15T14:23:01.123Z",
+  "player_id": 301,
+  "device_id": "garmin_abc123",
+  "metrics": {
+    "heart_rate_bpm": 87,
+    "speed_kmh": 0.5,
+    "total_distance_m": 12,
+    "accelerometer": {"x": 0.1, "y": -0.2, "z": 9.8}, // Mostly stationary
+    "location": {"x": 22.5, "y": 55.1} // Pitch coordinates
+  }
+}
+
+// Message 2 - The same player sprinting a run 10 seconds later
+{
+  "timestamp": "2023-05-15T14:23:11.567Z",
+  "player_id": 301,
+  "device_id": "garmin_abc123",
+  "metrics": {
+    "heart_rate_bpm": 142,
+    "speed_kmh": 28.7, // Peak sprint speed
+    "total_distance_m": 42, // 30m run + other movement
+    "accelerometer": {"x": 2.8, "y": 5.1, "z": 4.2}, // High acceleration
+    "location": {"x": 22.8, "y": 58.0}
+  }
+}
+
+4. Biomechanical/Video Datasets
+This involves large video files with associated metadata and labels. The data is often in a CSV or JSON manifest file pointing to video clips.
+**Sample Rows from a bowling_kinetics.csv:
+clip_id	bowler_id	match_id	ball_id	video_file_path	release_speed_kph	arm_angle_deg	hip_shoulder_separation	front_foot_impact	predicted_ball_type	actual_ball_type
+clip_001	601 (Cummins)	101	101.12.4	/videos/101/601_12_4.mp4	144.2	12.4	45	1.8m from stumps	seamer_yorker	seamer_yorker
+clip_002	501 (Archer)	101	101.12.3	/videos/101/501_12_3.mp4	148.6					
+
+
+Annotation Tool JSON Export for a batter's shot:
+{
+  "clip_id": "bat_045",
+  "batter_id": 201,
+  "shot_timestamp": "00:01:23:05",
+  "annotations": [
+    {
+      "label": "backlift_angle",
+      "value": 52,
+      "frame_number": 205
+    },
+    {
+      "label": "impact_position",
+      "value": {"x": 0.75, "y": 0.82},
+      "frame_number": 212
+    },
+    {
+      "label": "shot_class",
+      "value": "cover_drive",
+      "confidence": 0.96,
+      "frame_range": [208, 220]
+    }
+  ]
+}
+5. Contextual Data
+Pitch Report (Scouted a day before the match):
+{
+  "match_id": 101,
+  "venue": "Lords",
+  "scout_report": "22-yard strip, good covering of grass. Hard and pale in colour. Expected to offer consistent bounce and pace for the first two days. May slow down and take spin on days 4 and 5. Moisture content: 12%.",
+  "predicted_characteristics": {
+    "pace": 8/10,
+    "bounce": 7/10,
+    "spin": 4/10,
+    "wear": 6/10
+  }
+}
+Weather API Response (GET /weather?venue=Lords&date=2023-05-15):
+{
+  "date": "2023-05-15",
+  "venue": "Lords",
+  "forecast": {
+    "morning": {"condition": "Sunny", "temp_c": 18, "humidity": 65, "precip_mm": 0},
+    "afternoon": {"condition": "Partly Cloudy", "temp_c": 24, "humidity": 58, "precip_mm": 0, "cloud_cover_pct": 40},
+    "evening": {"condition": "Clear", "temp_c": 19, "humidity": 82, "precip_mm": 0}
+  },
+  "dew_point": "Moderate dew expected after 19:00"
+}
+
+Travel Schedule (CSV or JSON from team management software):
+[
+  {
+    "team": "Australia",
+    "from": "London",
+    "to": "Manchester",
+    "departure": "2023-05-16T10:00:00Z",
+    "arrival": "2023-05-16T14:30:00Z",
+    "travel_type": "Bus",
+    "distance_km": 340,
+    "next_match": "2023-05-19 vs Pakistan"
+  }
+]
+6. APIs/Endpoints for Coach Apps/Tablet
+These are typical endpoints a front-end application would call.
+•	Authentication: POST /auth/login
+•	Live Match Center: GET /matches/{id}/live (Returns current score, partnership, last 5 balls, required run rate)
+•	Player Comparison: GET /analysis/compare?player_a=201&player_b=301&format=test (Returns comparative stats charts)
+•	Opposition Analysis: GET /analysis/opposition/india/bowlers (Returns video clips and stats of all Indian bowlers)
+•	Tactical Dashboard: GET /matches/{id}/dashboard (Returns pre-match pitch report, weather, key match-ups, win probability)
+•	Biometric Alert: WS /alerts (WebSocket connection that pushes alerts, e.g., {"player_id": 301, "alert": "fatigue", "heart_rate": 95th_percentile"})
+•	Video Search: POST /video/search (Accepts a body like {"bowler_id": 601, "ball_type": "yorker", "batter_id": 201} and returns a list of relevant video clips)
+This sample data provides a concrete foundation for understanding the structure, format, and relationships of the data needed to build advanced cricket analytics platforms
+

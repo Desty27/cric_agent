@@ -1,0 +1,11 @@
+match_id,season,date,venue,team_a,team_b,toss_winner,toss_decision,winner
+1,2023,2023-01-01,Lords,South Africa,West Indies,West Indies,bat,South Africa
+2,2023,2023-01-08,Newlands,West Indies,India,India,field,India
+3,2023,2023-01-15,Lords,Australia,England,Australia,bat,Australia
+4,2023,2023-01-22,MCG,South Africa,England,South Africa,bat,England
+5,2023,2023-01-29,Lords,England,Australia,England,field,England
+6,2023,2023-02-05,Newlands,India,New Zealand,India,bat,New Zealand
+7,2023,2023-02-12,Basin Reserve,England,New Zealand,New Zealand,bat,New Zealand
+8,2023,2023-02-19,MCG,India,New Zealand,New Zealand,field,India
+9,2023,2023-02-26,SCG,West Indies,Australia,West Indies,field,Australia
+10,2023,2023-03-05,The Oval,England,West Indies,England,field,England
