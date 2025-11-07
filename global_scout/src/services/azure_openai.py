@@ -124,3 +124,121 @@ def generate_medical_coordination_notes(
     if lines:
         return lines
     return base_notes or None
+
+
+def generate_integrity_brief(
+    match_meta: Dict[str, Any],
+    pressure_windows: List[Dict[str, Any]],
+    hotspots: List[Dict[str, Any]],
+    alerts: List[str],
+    temperature: float = 0.2,
+) -> Optional[str]:
+    client_info = _build_client()
+    if client_info is None:
+        return None
+
+    client, deployment = client_info
+
+    team_a, team_b = (match_meta.get("teams") or ["Team A", "Team B"])[:2]
+    venue = match_meta.get("venue", "Unknown venue")
+    date = match_meta.get("date", "TBD")
+
+    user_prompt = (
+        "You are CAIN's Adjudication & Integrity Agent. Compose a concise integrity brief as Markdown.\n"
+        "Context: {team_a} vs {team_b} on {date} at {venue}.\n"
+        "Appeal pressure windows (JSON): {pressure}\n"
+        "Review hotspots (JSON): {hotspots}\n"
+        "Alerts: {alerts}\n"
+        "Respond with headings: Situation Snapshot, High-Risk Windows, Coordination Signals."
+        "Limit total length to ~180 words. Highlight coordination cues for Tactical and Physio agents where relevant."
+    ).format(
+        team_a=team_a,
+        team_b=team_b,
+        date=date,
+        venue=venue,
+        pressure=json.dumps(pressure_windows),
+        hotspots=json.dumps(hotspots),
+        alerts="; ".join(alerts),
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You are the Integrity co-pilot for CAIN. Provide objective, data-backed umpiring support."
+                        " Keep analysis neutral and action-oriented."
+                    ),
+                },
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=temperature,
+            max_tokens=350,
+            top_p=0.9,
+        )
+    except Exception:
+        return None
+
+    text = response.choices[0].message.content if response.choices else ""
+    return text or None
+
+
+def generate_supervisor_plan(
+    match_meta: Dict[str, Any],
+    tactical_snapshot: Dict[str, Any],
+    wellness_snapshot: Dict[str, Any],
+    integrity_snapshot: Dict[str, Any],
+    recruiting_snapshot: Dict[str, Any],
+    temperature: float = 0.2,
+) -> Optional[str]:
+    client_info = _build_client()
+    if client_info is None:
+        return None
+
+    client, deployment = client_info
+
+    meta_text = json.dumps(match_meta, ensure_ascii=False)
+    tactical_text = json.dumps(tactical_snapshot, ensure_ascii=False)
+    wellness_text = json.dumps(wellness_snapshot, ensure_ascii=False)
+    integrity_text = json.dumps(integrity_snapshot, ensure_ascii=False)
+    recruiting_text = json.dumps(recruiting_snapshot, ensure_ascii=False)
+
+    prompt = (
+        "You are the CAIN Supervisor Agent (Head Coach)."  # noqa: E501
+        " Produce a succinct Markdown mission briefing aligning Tactical, Physio, Integrity, and Scout agents.\n"
+        "Context JSON blocks are provided; synthesize them into no more than 180 words.\n"
+        "Structure the briefing with the headings: Goal Alignment, Tactical Priorities, Human Performance, Integrity Watch, Recruitment Lens.\n"
+        "Each section should contain 2 bullet points max, referencing specific data cues from the context."  # noqa: E501
+    )
+
+    user_payload = (
+        f"MATCH_META: {meta_text}\n"
+        f"TACTICAL: {tactical_text}\n"
+        f"WELLNESS: {wellness_text}\n"
+        f"INTEGRITY: {integrity_text}\n"
+        f"RECRUITING: {recruiting_text}"
+    )
+
+    try:
+        response = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {
+                    "role": "system",
+                    "content": (
+                        "You orchestrate CAIN's multi-agent collaboration. Prioritise clarity, brevity, and actionable sequencing."  # noqa: E501
+                    ),
+                },
+                {"role": "user", "content": prompt + "\n\n" + user_payload},
+            ],
+            temperature=temperature,
+            max_tokens=380,
+            top_p=0.9,
+        )
+    except Exception:
+        return None
+
+    text = response.choices[0].message.content if response.choices else ""
+    return text or None
